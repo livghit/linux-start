@@ -1,18 +1,24 @@
-# With this scripts collection I will always be able to turn a fresh Fedora install into a usable dev system
+# Fedora Development Environment Setup
 
-## First we update the system and create a personal folder
+This script collection transforms a fresh Fedora install into a complete development system.
 
-## After That we install all the packages I need 
-- Neovim & neovim configs # from sourve
-- lazygit
-- lauydocker
-- tmux
-- fish shell
-- oh my fish
-- Git
-- Bun
-- Docker
-- nvm to manage Node.js
+## Setup Process
 
-# I will use Hyprland and Wayland
-- for this I will use the install script from <https://github.com/JaKooLit/Fedora-Hyprland>
+### 1. System Update and Directory Setup
+First, we update the system and create a personal folder structure.
+
+### 2. Package Installation
+The following development tools will be installed:
+
+- **Neovim** & neovim configs (from source)
+- **lazygit** - Git terminal UI
+- **lazydocker** - Docker terminal UI  
+- **tmux** - Terminal multiplexer
+- **Git** - Version control
+- **Docker** - Containerization platform
+- **Bun** - JavaScript runtime
+- **nvm** - Node.js version manager
+
+### 3. Desktop Environment
+**Hyprland with Wayland** will be installed using the installation script from:
+<https://github.com/JaKooLit/Fedora-Hyprland>
