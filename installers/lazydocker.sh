@@ -15,9 +15,8 @@ if check_already_installed "lazydocker" "lazydocker" "--version"; then
   exit 0
 fi
 
-# Check if Go is installed
-if ! command_exists "go"; then
-  print_error "Go is not installed. Please install Go first."
+# Check if Go is installed and available
+if ! ensure_go_in_path; then
   exit 1
 fi
 

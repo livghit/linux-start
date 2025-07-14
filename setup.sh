@@ -41,6 +41,18 @@ fi
 print_status "Installing development dependencies..."
 sudo dnf -y install ninja-build cmake gcc make gettext curl glibc-gconv-extra go
 
+# Ensure Go is in PATH after installation
+print_status "Configuring Go environment..."
+export PATH=$PATH:/usr/bin:/usr/local/bin
+hash -r  # Refresh command hash table
+
+# Verify Go installation
+if ! command -v go &>/dev/null; then
+  print_error "Go installation failed or not found in PATH"
+  exit 1
+fi
+print_status "Go version: $(go version)"
+
 # Install Neovim
 NEOVIM_SCRIPT="$SCRIPT_DIR/installers/neovim.sh"
 if [[ -f "$NEOVIM_SCRIPT" ]]; then

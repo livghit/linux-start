@@ -42,6 +42,23 @@ command_exists() {
   command -v "$1" &>/dev/null
 }
 
+# Ensure Go is available in PATH
+ensure_go_in_path() {
+  if ! command_exists "go"; then
+    print_status "Refreshing environment to find Go..."
+    export PATH=$PATH:/usr/bin:/usr/local/bin
+    hash -r  # Refresh command hash table
+    
+    if ! command_exists "go"; then
+      print_error "Go is not installed or not found in PATH"
+      print_error "Please install Go first: sudo dnf install go"
+      return 1
+    fi
+  fi
+  print_status "Go found: $(go version)"
+  return 0
+}
+
 # Check if a tool is already installed
 check_already_installed() {
   local tool_name="$1"
