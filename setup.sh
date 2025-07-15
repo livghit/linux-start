@@ -120,6 +120,24 @@ else
   print_error "phpstorm.sh not found at $PHPSTORM_SCRIPT"
 fi
 
+# Install Beekeeper Studio
+BEEKEEPER_SCRIPT="$SCRIPT_DIR/installers/beekeeper.sh"
+if [[ -f "$BEEKEEPER_SCRIPT" ]]; then
+  chmod +x "$BEEKEEPER_SCRIPT"
+  "$BEEKEEPER_SCRIPT"
+else
+  print_error "beekeeper.sh not found at $BEEKEEPER_SCRIPT"
+fi
+
+# Install Flameshot
+FLAMESHOT_SCRIPT="$SCRIPT_DIR/installers/flameshot.sh"
+if [[ -f "$FLAMESHOT_SCRIPT" ]]; then
+  chmod +x "$FLAMESHOT_SCRIPT"
+  "$FLAMESHOT_SCRIPT"
+else
+  print_error "flameshot.sh not found at $FLAMESHOT_SCRIPT"
+fi
+
 print_status "Fedora setup completed successfully!"
 print_status "Summary of installed tools:"
 echo "  - Neovim: $(nvim --version 2>/dev/null | head -1 || echo 'Failed to install')"
@@ -128,6 +146,8 @@ echo "  - lazydocker: $(lazydocker --version 2>/dev/null || echo 'Failed to inst
 echo "  - tmux: $(tmux -V 2>/dev/null || echo 'Failed to install')"
 echo "  - Docker: $(docker --version 2>/dev/null || echo 'Failed to install')"
 echo "  - PhpStorm: $(command -v phpstorm >/dev/null 2>&1 && echo 'Installed' || echo 'Failed to install')"
+echo "  - Beekeeper Studio: $(command -v beekeeper-studio >/dev/null 2>&1 && echo 'Installed' || echo 'Failed to install')"
+echo "  - Flameshot: $(flameshot --version 2>/dev/null || echo 'Failed to install')"
 echo
 print_warning "Remember to restart your shell or run 'source ~/.bashrc' (or appropriate shell config) to use Go binaries"
 print_warning "Log out and log back in for Docker group changes to take effect"

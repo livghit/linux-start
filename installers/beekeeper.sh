@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Beekeeper Studio Installation Script for Fedora
-# This script installs Beekeeper Studio from source
+# This script installs Beekeeper Studio from official releases
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,76 +10,85 @@ source "$SCRIPT_DIR/common.sh"
 # Initialize installer
 init_installer "Beekeeper Studio"
 
-# Check if already installed by looking for the built app
-if [[ -f "$HOME/personal/beekeeper-studio/dist_electron/beekeeper-studio" ]]; then
-  print_warning "Beekeeper Studio appears to be already built"
+# Check if already installed
+if command_exists "beekeeper-studio" || [[ -f "/usr/local/bin/beekeeper-studio" ]]; then
+  print_warning "Beekeeper Studio appears to be already installed"
   print_warning "Skipping installation..."
   exit 0
 fi
 
-# Install build dependencies
-print_status "Installing build dependencies..."
-install_dependencies "nodejs npm git"
-
-# Install Yarn globally if not present
-if ! command_exists "yarn"; then
-  print_status "Installing Yarn..."
-  sudo npm install -g yarn
-fi
-
-# Create personal directory
-create_personal_dir
-
-# Clone Beekeeper Studio repository
-print_status "Cloning Beekeeper Studio repository..."
-cd "$HOME/personal"
-if [[ -d "beekeeper-studio" ]]; then
-  print_status "Removing existing beekeeper-studio directory..."
-  rm -rf beekeeper-studio
-fi
-
-git clone https://github.com/beekeeper-studio/beekeeper-studio.git
-cd beekeeper-studio
-
 # Install dependencies
-print_status "Installing project dependencies (this may take a while)..."
-yarn install
+install_dependencies "curl wget jq"
 
-# Build the application
-print_status "Building Beekeeper Studio (this may take several minutes)..."
-yarn run electron:build
+# Detect architecture
+ARCH=$(uname -m)
+case $ARCH in
+  x86_64) ARCH_SUFFIX="x86_64" ;;
+  aarch64) ARCH_SUFFIX="aarch64" ;;
+  *) 
+    print_error "Unsupported architecture: $ARCH"
+    exit 1
+    ;;
+esac
 
-# Create desktop entry
-print_status "Creating desktop entry..."
-DESKTOP_FILE="$HOME/.local/share/applications/beekeeper-studio.desktop"
-mkdir -p "$HOME/.local/share/applications"
+# Get latest version from GitHub releases
+print_status "Fetching latest Beekeeper Studio release information..."
+LATEST_RELEASE=$(curl -s https://api.github.com/repos/beekeeper-studio/beekeeper-studio/releases/latest)
+VERSION=$(echo "$LATEST_RELEASE" | jq -r '.tag_name' | sed 's/^v//')
 
-cat >"$DESKTOP_FILE" <<EOF
-[Desktop Entry]
-Name=Beekeeper Studio
-Comment=Modern and easy to use SQL client
-Exec=$HOME/personal/beekeeper-studio/dist_electron/beekeeper-studio
-Icon=$HOME/personal/beekeeper-studio/build/icons/icon.png
-Type=Application
-Categories=Development;Database;
-Terminal=false
-StartupNotify=true
+if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
+  print_error "Failed to fetch latest version"
+  exit 1
+fi
+
+print_status "Latest version: $VERSION"
+
+# Try RPM first (preferred for Fedora)
+RPM_URL="https://github.com/beekeeper-studio/beekeeper-studio/releases/download/v${VERSION}/beekeeper-studio-${VERSION}.${ARCH_SUFFIX}.rpm"
+print_status "Attempting to install RPM package..."
+
+# Download RPM
+TEMP_RPM="/tmp/beekeeper-studio-${VERSION}.${ARCH_SUFFIX}.rpm"
+if download_file "$RPM_URL" "$TEMP_RPM" "Beekeeper Studio RPM"; then
+  # Install RPM
+  print_status "Installing Beekeeper Studio RPM..."
+  if sudo dnf install -y "$TEMP_RPM"; then
+    cleanup "$TEMP_RPM"
+    print_status "Beekeeper Studio installed successfully via RPM!"
+  else
+    print_warning "RPM installation failed, trying Flatpak..."
+    cleanup "$TEMP_RPM"
+    
+    # Fallback to Flatpak
+    if ! command_exists "flatpak"; then
+      print_status "Installing Flatpak..."
+      install_dependencies "flatpak"
+    fi
+    
+    # Add Flathub repository
+    print_status "Adding Flathub repository..."
+    sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    
+    # Install via Flatpak
+    print_status "Installing Beekeeper Studio via Flatpak..."
+    if sudo flatpak install -y flathub io.beekeeperstudio.Studio; then
+      # Create symlink for command line access
+      print_status "Creating command line symlink..."
+      sudo tee /usr/local/bin/beekeeper-studio >/dev/null <<EOF
+#!/bin/bash
+exec flatpak run io.beekeeperstudio.Studio "\$@"
 EOF
-
-# Make desktop file executable
-chmod +x "$DESKTOP_FILE"
-
-# Create symlink for command line access
-print_status "Creating command line symlink..."
-sudo ln -sf "$HOME/personal/beekeeper-studio/dist_electron/beekeeper-studio" /usr/local/bin/beekeeper-studio
-
-# Verify installation
-if [[ -f "$HOME/personal/beekeeper-studio/dist_electron/beekeeper-studio" ]]; then
-  print_status "Beekeeper Studio build completed successfully!"
-  print_status "You can launch it from the applications menu or run 'beekeeper-studio' in terminal"
+      sudo chmod +x /usr/local/bin/beekeeper-studio
+      print_status "Beekeeper Studio installed successfully via Flatpak!"
+    else
+      print_error "Failed to install Beekeeper Studio via Flatpak"
+      exit 1
+    fi
+  fi
 else
-  print_error "Beekeeper Studio build failed!"
+  print_error "Failed to download RPM package"
   exit 1
 fi
 
 print_status "Beekeeper Studio installation script completed!"
+print_status "You can launch Beekeeper Studio from the applications menu"

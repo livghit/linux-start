@@ -37,15 +37,14 @@ install_dependencies "dnf-plugins-core"
 
 # Add Docker repository
 print_status "Adding Docker CE repository..."
-sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
 
 # Install Docker packages
 install_dependencies "docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
 
 # Start and enable Docker service
 print_status "Starting and enabling Docker service..."
-sudo systemctl start docker
-sudo systemctl enable docker
+sudo systemctl enable --now docker
 
 # Add current user to docker group
 print_status "Adding current user ($USER) to docker group..."

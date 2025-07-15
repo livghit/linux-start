@@ -1,17 +1,17 @@
 #!/bin/bash
 
-# Flameshot Installation Script for Fedora
-# This script installs Flameshot screenshot tool from the official Fedora repository
+# Screenshot tools installation script for Fedora
+# Installs grim and slurp (Wayland-native) for Hyprland compatibility
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
 # Initialize installer
-init_installer "Flameshot"
+init_installer "Screenshot Tools"
 
 # Check if already installed
-if check_already_installed "Flameshot" "flameshot" "--version"; then
+if check_already_installed "grim" "grim" "--version" && check_already_installed "slurp" "slurp" "--version"; then
   exit 0
 fi
 
@@ -19,17 +19,20 @@ fi
 print_status "Updating system packages..."
 sudo dnf update -y
 
-# Install Flameshot
-print_status "Installing Flameshot..."
-sudo dnf install -y flameshot
+# Install grim and slurp
+print_status "Installing grim and slurp..."
+sudo dnf install -y grim slurp
 
 # Verify installation
-if ! verify_installation "Flameshot" "flameshot" "--version"; then
+if ! verify_installation "grim" "grim" "--version"; then
+  exit 1
+fi
+
+if ! verify_installation "slurp" "slurp" "--version"; then
   exit 1
 fi
 
 echo
-print_status "Flameshot can be launched from the applications menu or by running 'flameshot' in terminal"
-print_status "To take a screenshot, run: flameshot gui"
-print_status "To configure Flameshot, run: flameshot config"
-print_status "Flameshot installation script completed!"
+print_status "Screenshot tools installed successfully!"
+print_status "To take a screenshot, run: grim -g \"\$(slurp)\" screenshot.png"
+print_status "grim and slurp work natively with Hyprland and other Wayland compositors"

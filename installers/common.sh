@@ -99,6 +99,11 @@ verify_installation() {
   local command_name="${2:-$1}"
   local version_flag="${3:---version}"
   
+  # Ensure $HOME/go/bin is in PATH for verification
+  if [[ ":$PATH:" != *":$HOME/go/bin:"* ]]; then
+    export PATH="$PATH:$HOME/go/bin"
+  fi
+  
   if command_exists "$command_name"; then
     print_status "$tool_name installation completed successfully!"
     if [[ -n "$version_flag" ]]; then
