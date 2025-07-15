@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Lazygit Installation Script for Fedora
-# This script installs lazygit from source
+# Lazygit Installation Script
+# This script installs lazygit from source on supported Linux distributions
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

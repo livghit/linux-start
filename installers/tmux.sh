@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Tmux Installation Script for Fedora
-# This script installs tmux via dnf package manager
+# Tmux Installation Script
+# This script installs tmux on supported Linux distributions
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,9 +15,9 @@ if check_already_installed "tmux" "tmux" "-V"; then
   exit 0
 fi
 
-# Install tmux via dnf
-print_status "Installing tmux via dnf..."
-sudo dnf -y install tmux
+# Install tmux
+print_status "Installing tmux..."
+$INSTALL_CMD tmux
 
 # Verify installation
 verify_installation "tmux" "tmux" "-V"

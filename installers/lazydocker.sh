@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Lazydocker Installation Script for Fedora
-# This script installs lazydocker from source
+# Lazydocker Installation Script
+# This script installs lazydocker from source on supported Linux distributions
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

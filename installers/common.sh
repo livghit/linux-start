@@ -30,6 +30,58 @@ check_root() {
   fi
 }
 
+# Detect the operating system
+detect_os() {
+  if [[ -f /etc/os-release ]]; then
+    source /etc/os-release
+    OS_ID="$ID"
+    OS_ID_LIKE="$ID_LIKE"
+  else
+    print_error "Cannot detect operating system"
+    exit 1
+  fi
+}
+
+# Check if OS is supported and set package manager
+check_supported_os() {
+  detect_os
+  
+  case "$OS_ID" in
+    fedora)
+      PACKAGE_MANAGER="dnf"
+      UPDATE_CMD="sudo dnf update -y"
+      INSTALL_CMD="sudo dnf install -y"
+      ;;
+    ubuntu|debian)
+      PACKAGE_MANAGER="apt"
+      UPDATE_CMD="sudo apt update && sudo apt upgrade -y"
+      INSTALL_CMD="sudo apt install -y"
+      ;;
+    *)
+      # Check ID_LIKE for derivatives
+      case "$OS_ID_LIKE" in
+        *debian*|*ubuntu*)
+          PACKAGE_MANAGER="apt"
+          UPDATE_CMD="sudo apt update && sudo apt upgrade -y"
+          INSTALL_CMD="sudo apt install -y"
+          ;;
+        *fedora*|*rhel*)
+          PACKAGE_MANAGER="dnf"
+          UPDATE_CMD="sudo dnf update -y"
+          INSTALL_CMD="sudo dnf install -y"
+          ;;
+        *)
+          print_error "Unsupported operating system: $OS_ID"
+          print_error "This script supports Fedora, Ubuntu, and Debian-based distributions"
+          exit 1
+          ;;
+      esac
+      ;;
+  esac
+  
+  print_status "Detected OS: $OS_ID (using $PACKAGE_MANAGER package manager)"
+}
+
 check_fedora() {
   if ! command -v dnf &>/dev/null; then
     print_error "This script is designed for Fedora systems with dnf package manager."
@@ -81,7 +133,7 @@ init_installer() {
   print_status "Starting $tool_name installation process..."
   
   check_root
-  check_fedora
+  check_supported_os
   
   set -e # Exit on any error
 }
@@ -121,7 +173,7 @@ install_dependencies() {
   local deps="$*"
   if [[ -n "$deps" ]]; then
     print_status "Installing dependencies: $deps"
-    sudo dnf -y install $deps
+    $INSTALL_CMD $deps
   fi
 }
 

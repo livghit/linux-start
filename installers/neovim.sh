@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Neovim Installation Script for Fedora
-# This script installs Neovim from source
+# Neovim Installation Script
+# This script installs Neovim from source on supported Linux distributions
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,8 +15,12 @@ if check_already_installed "Neovim" "nvim" "--version"; then
   exit 0
 fi
 
-# Install dependencies
-install_dependencies "ninja-build cmake gcc make gettext curl glibc-gconv-extra"
+# Install dependencies based on OS
+if [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
+  install_dependencies "ninja-build cmake gcc make gettext curl glibc-gconv-extra"
+elif [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+  install_dependencies "ninja-build gettext cmake unzip curl"
+fi
 
 # Create personal directory
 create_personal_dir
