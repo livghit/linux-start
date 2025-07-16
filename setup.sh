@@ -1,57 +1,41 @@
 #!/bin/bash
 
-# Script for setting up fedora fresh install with necessary packages and configurations
-
-set -e # Exit on any error
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Function to print colored output
-print_status() {
-  echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-print_warning() {
-  echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-  echo -e "${RED}[ERROR]${NC} $1"
-}
+# Script for setting up fresh install with necessary packages and configurations
+# Compatible with Fedora and Ubuntu
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-print_status "Starting Fedora setup process..."
+# Source common functions
+source "$SCRIPT_DIR/installers/common.sh"
+
+# Initialize the installer (checks OS, sets package manager vars)
+init_installer "System Setup"
+
+print_status "Starting system setup process..."
 
 # Update the system
 print_status "Updating system packages..."
-sudo dnf update -y
+eval "$UPDATE_CMD"
 
 # Create a personal folder in the home directory if it doesn't exist
-if [ ! -d $HOME/personal ]; then
-  mkdir -p $HOME/personal
-fi
+create_personal_dir
 
 # Installing software from source in the personal folder
 print_status "Installing development dependencies..."
-sudo dnf -y install ninja-build cmake gcc make gettext curl glibc-gconv-extra go
+
+# Define dependencies based on package manager
+if [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
+  DEPS="ninja-build cmake gcc make gettext curl glibc-gconv-extra go"
+elif [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+  DEPS="ninja-build cmake gcc make gettext curl libc-bin golang-go"
+fi
+
+install_dependencies $DEPS
 
 # Ensure Go is in PATH after installation
 print_status "Configuring Go environment..."
-export PATH=$PATH:/usr/bin:/usr/local/bin
-hash -r  # Refresh command hash table
-
-# Verify Go installation
-if ! command -v go &>/dev/null; then
-  print_error "Go installation failed or not found in PATH"
-  exit 1
-fi
-print_status "Go version: $(go version)"
+ensure_go_in_path
 
 # Install Neovim
 NEOVIM_SCRIPT="$SCRIPT_DIR/installers/neovim.sh"
@@ -138,7 +122,7 @@ else
   print_error "flameshot.sh not found at $FLAMESHOT_SCRIPT"
 fi
 
-print_status "Fedora setup completed successfully!"
+print_status "System setup completed successfully!"
 print_status "Summary of installed tools:"
 echo "  - Neovim: $(nvim --version 2>/dev/null | head -1 || echo 'Failed to install')"
 echo "  - lazygit: $(lazygit --version 2>/dev/null || echo 'Failed to install')"
