@@ -1,7 +1,22 @@
 #!/bin/bash
 
+# =============================================================================
 # Docker Installation Script
-# This script installs Docker CE on supported Linux distributions using official repositories
+# =============================================================================
+#
+# Description: Installs Docker CE from official repositories
+# Supported OS: Fedora, Ubuntu, Debian-based distributions  
+# Requirements: curl, sudo privileges
+# Installation time: ~3-5 minutes
+#
+# What this script does:
+# 1. Removes any existing Docker packages
+# 2. Adds official Docker repositories for your OS
+# 3. Installs Docker CE, CLI, containerd, and compose plugin
+# 4. Starts and enables Docker service
+# 5. Adds current user to docker group (requires logout/login)
+# 6. Tests installation with hello-world container
+# =============================================================================
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,6 +24,9 @@ source "$SCRIPT_DIR/common.sh"
 
 # Initialize installer
 init_installer "Docker"
+
+# Validate required tools
+validate_required_tools "curl" "wget"
 
 # Update system packages
 print_status "Updating system packages..."
@@ -34,7 +52,7 @@ if [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
   
   # Add Docker repository
   print_status "Adding Docker CE repository..."
-  sudo dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+  sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
   
   # Install Docker packages
   install_dependencies "docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"

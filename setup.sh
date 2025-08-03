@@ -1,7 +1,22 @@
 #!/bin/bash
 
-# Script for setting up fresh install with necessary packages and configurations
-# Compatible with Fedora and Ubuntu
+# =============================================================================
+# Linux Development Environment Setup Script
+# =============================================================================
+#
+# Description: Transforms a fresh Linux installation into a complete dev environment
+# Supported OS: Fedora, Ubuntu, Debian-based distributions
+# Total installation time: ~15-30 minutes depending on internet speed
+#
+# This script will install:
+# - Neovim (built from source)
+# - lazygit & lazydocker (Git/Docker terminal UIs)  
+# - tmux (terminal multiplexer)
+# - Docker CE (containerization platform)
+# - Development IDEs and tools
+#
+# Prerequisites: sudo privileges, internet connection
+# =============================================================================
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

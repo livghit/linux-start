@@ -1,7 +1,21 @@
 #!/bin/bash
 
+# =============================================================================
 # Neovim Installation Script
-# This script installs Neovim from source on supported Linux distributions
+# =============================================================================
+# 
+# Description: Installs the latest stable Neovim from source
+# Supported OS: Fedora, Ubuntu, Debian-based distributions
+# Requirements: git, cmake, make, gcc, ninja-build, gettext, curl
+# Installation time: ~5-10 minutes depending on system performance
+#
+# What this script does:
+# 1. Checks if Neovim is already installed
+# 2. Installs build dependencies for your OS
+# 3. Clones Neovim stable branch from GitHub
+# 4. Builds Neovim with optimized settings
+# 5. Installs system-wide to /usr/local/bin/nvim
+# =============================================================================
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,6 +29,9 @@ if check_already_installed "Neovim" "nvim" "--version"; then
   exit 0
 fi
 
+# Validate required tools
+validate_required_tools "git" "make" "cmake"
+
 # Install dependencies based on OS
 if [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
   install_dependencies "ninja-build cmake gcc make gettext curl glibc-gconv-extra"
@@ -26,22 +43,29 @@ fi
 create_personal_dir
 
 # Install Neovim from source
-print_status "Cloning Neovim repository..."
 cd "$HOME/personal"
-if [[ -d "neovim" ]]; then
-  print_status "Removing existing neovim directory..."
-  rm -rf neovim
+
+# Use safe git clone function
+if ! safe_git_clone "https://github.com/neovim/neovim" "$HOME/personal/neovim" "stable"; then
+  print_error "Failed to clone Neovim repository"
+  exit 1
 fi
 
-git clone https://github.com/neovim/neovim
 cd neovim
-git checkout stable
 
-print_status "Building Neovim..."
-make CMAKE_BUILD_TYPE=RelWithDebInfo
+print_status "Building Neovim (this may take several minutes)..."
+if ! make CMAKE_BUILD_TYPE=RelWithDebInfo; then
+  print_error "Failed to build Neovim"
+  cleanup_on_failure "$HOME/personal/neovim"
+  exit 1
+fi
 
 print_status "Installing Neovim..."
-sudo make install
+if ! sudo make install; then
+  print_error "Failed to install Neovim"
+  cleanup_on_failure "$HOME/personal/neovim"
+  exit 1
+fi
 
 # Verify installation
 verify_installation "Neovim" "nvim" "--version"

@@ -1,7 +1,17 @@
 #!/bin/bash
 
-# Common library for installer scripts
-# This file contains shared functions used by all installer scripts
+# =============================================================================
+# Common Library for Installation Scripts
+# =============================================================================
+#
+# This library provides shared functions for all installer scripts including:
+# - OS detection and package manager setup
+# - Colored output functions for consistent UI
+# - Error handling and validation utilities
+# - Common installation patterns and cleanup functions
+#
+# Usage: source this file at the beginning of installer scripts
+# =============================================================================
 
 # Colors for output
 RED='\033[0;31m'
@@ -94,6 +104,29 @@ command_exists() {
   command -v "$1" &>/dev/null
 }
 
+# Validate required tools before installation
+validate_required_tools() {
+  local tools=("$@")
+  local missing_tools=()
+  
+  print_status "Validating required tools..."
+  
+  for tool in "${tools[@]}"; do
+    if ! command_exists "$tool"; then
+      missing_tools+=("$tool")
+    fi
+  done
+  
+  if [[ ${#missing_tools[@]} -gt 0 ]]; then
+    print_error "Missing required tools: ${missing_tools[*]}"
+    print_error "Please install them first: $INSTALL_CMD ${missing_tools[*]}"
+    return 1
+  fi
+  
+  print_status "All required tools are available"
+  return 0
+}
+
 # Ensure Go is available in PATH
 ensure_go_in_path() {
   if ! command_exists "go"; then
@@ -103,7 +136,7 @@ ensure_go_in_path() {
     
     if ! command_exists "go"; then
       print_error "Go is not installed or not found in PATH"
-      print_error "Please install Go first: sudo dnf install go"
+      print_error "Please install Go first: $INSTALL_CMD golang-go"
       return 1
     fi
   fi
@@ -185,6 +218,40 @@ cleanup() {
       rm -f "$file"
     fi
   done
+}
+
+# Clean up directories on failure
+cleanup_on_failure() {
+  local dirs="$*"
+  print_warning "Installation failed, cleaning up..."
+  for dir in $dirs; do
+    if [[ -d "$dir" ]]; then
+      print_status "Removing directory: $dir"
+      rm -rf "$dir"
+    fi
+  done
+}
+
+# Safe git clone with error handling
+safe_git_clone() {
+  local repo_url="$1"
+  local target_dir="$2"
+  local branch="${3:-main}"
+  
+  print_status "Cloning $repo_url (branch: $branch)..."
+  
+  if [[ -d "$target_dir" ]]; then
+    print_status "Removing existing directory: $target_dir"
+    rm -rf "$target_dir"
+  fi
+  
+  if ! git clone --branch "$branch" --depth 1 "$repo_url" "$target_dir"; then
+    print_error "Failed to clone repository: $repo_url"
+    cleanup_on_failure "$target_dir"
+    return 1
+  fi
+  
+  return 0
 }
 
 # Download file with error handling
