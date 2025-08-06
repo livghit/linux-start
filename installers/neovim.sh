@@ -3,7 +3,7 @@
 # =============================================================================
 # Neovim Installation Script
 # =============================================================================
-# 
+#
 # Description: Installs the latest stable Neovim from source
 # Supported OS: Fedora, Ubuntu, Debian-based distributions
 # Requirements: git, cmake, make, gcc, ninja-build, gettext, curl
@@ -71,3 +71,4 @@ fi
 verify_installation "Neovim" "nvim" "--version"
 
 print_status "Neovim installation script completed!"
+
