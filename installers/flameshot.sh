@@ -15,10 +15,6 @@ if check_already_installed "flameshot" "flameshot" "--version"; then
   exit 0
 fi
 
-# Update system packages
-print_status "Updating system packages..."
-$UPDATE_CMD
-
 # Install flameshot
 print_status "Installing Flameshot..."
 $INSTALL_CMD flameshot
