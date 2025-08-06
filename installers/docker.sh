@@ -5,7 +5,7 @@
 # =============================================================================
 #
 # Description: Installs Docker CE from official repositories
-# Supported OS: Fedora, Ubuntu, Debian-based distributions  
+# Supported OS: Fedora, Ubuntu, Debian-based distributions
 # Requirements: curl, sudo privileges
 # Installation time: ~3-5 minutes
 #
@@ -28,10 +28,6 @@ init_installer "Docker"
 # Validate required tools
 validate_required_tools "curl" "wget"
 
-# Update system packages
-print_status "Updating system packages..."
-$UPDATE_CMD
-
 # Remove any existing Docker packages and install Docker
 print_status "Removing any existing Docker packages..."
 if [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
@@ -46,35 +42,38 @@ if [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
     docker-engine-selinux \
     docker-engine \
     podman-docker || true
-  
+
   # Install required packages
   install_dependencies "dnf-plugins-core"
-  
+
   # Add Docker repository
   print_status "Adding Docker CE repository..."
   sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-  
+
   # Install Docker packages
   install_dependencies "docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
 
 elif [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+  # Check if packages are already installed
+  print_status "Checking if packages are already installed..."
+
   sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
-  
+
   # Install prerequisites
   install_dependencies "ca-certificates curl gnupg lsb-release"
-  
+
   # Add Docker's official GPG key
   print_status "Adding Docker GPG key..."
   sudo mkdir -p /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  
+
   # Set up the repository
   print_status "Adding Docker repository..."
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+
   # Update package index
   sudo apt-get update
-  
+
   # Install Docker packages
   install_dependencies "docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
 fi
